@@ -1,0 +1,16 @@
+.venv/**
+workspace/**
+**/__pycache__/**
+*.pyc
+*.pyo
+.env
+.env.*
+agent.log
+*.log
+.agentvs/**
+gui/**
+run_gui.py
+workspace/tasks.db
+agent/state.json
+agent/memory.json
+workspace/.agentvs/**

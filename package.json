@@ -1,0 +1,104 @@
+{
+  "name": "agent-vs",
+  "displayName": "Agent VS",
+  "description": "Autonomous coding agent for VS Code backed by a local Python runtime and Azure OpenAI.",
+  "version": "0.1.0",
+  "publisher": "crjtech3-spec",
+  "preview": true,
+  "icon": "vscode/media/icon.png",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/crjtech3-spec/agent-vs#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crjtech3-spec/agent-vs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/crjtech3-spec/agent-vs/issues"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "azure-openai",
+    "python",
+    "automation",
+    "coding-assistant"
+  ],
+  "galleryBanner": {
+    "color": "#0f172a",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onView:agentVs.sidebar",
+    "onCommand:agentVs.openPanel",
+    "onCommand:agentVs.installDependencies",
+    "onCommand:agentVs.showOutput"
+  ],
+  "main": "./vscode/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentVs.openPanel",
+        "title": "Agent VS: Open Panel"
+      },
+      {
+        "command": "agentVs.installDependencies",
+        "title": "Agent VS: Install Backend Dependencies"
+      },
+      {
+        "command": "agentVs.showOutput",
+        "title": "Agent VS: Show Output"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "agentVs",
+          "title": "Agent VS",
+          "icon": "vscode/media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "agentVs": [
+        {
+          "id": "agentVs.sidebar",
+          "name": "Assistant"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Agent VS",
+      "properties": {
+        "agentVs.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Python executable used to launch the local agent backend."
+        },
+        "agentVs.envFile": {
+          "type": "string",
+          "default": ".agentvs/config.env",
+          "description": "Workspace-relative env file that Agent VS loads before reading Azure OpenAI settings."
+        },
+        "agentVs.maxIterations": {
+          "type": "number",
+          "default": 60,
+          "minimum": 1,
+          "maximum": 500,
+          "description": "Default iteration cap used when starting a run from the Agent VS panel."
+        },
+        "agentVs.promptInstallDependencies": {
+          "type": "boolean",
+          "default": true,
+          "description": "Prompt to install missing Python backend dependencies when the agent starts."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
+.agentvs/
+workspace/.agentvs/
+agent.log
+*.log
+workspace/tasks.db
