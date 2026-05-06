@@ -2,6 +2,13 @@
 
 All notable changes to the Azure AI Agent extension are documented here.
 
+## 1.1.1 — 2026-05-06
+
+### Changed
+- Marketplace republish with refreshed README and changelog metadata.
+- Documentation updated to reflect current MCP support, settings UI, diagnostics, and run-history features.
+- Repository moved to the new GitHub home for this extension.
+
 ## 1.1.0 — 2026-05-05
 
 Major feature release.
