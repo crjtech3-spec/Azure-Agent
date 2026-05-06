@@ -1,146 +1,324 @@
 {
-    "name": "azure-foundry-agent",
-    "displayName": "Azure Foundry Agent",
-    "description": "A VS Code coding assistant for Azure AI Foundry models",
-    "version": "0.0.2",
-    "publisher": "crjtech",
-    "license": "UNLICENSED",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/crjtech3-spec/agent-vs.git"
-    },
-    "bugs": {
-        "url": "https://github.com/crjtech3-spec/agent-vs/issues"
-    },
-    "homepage": "https://github.com/crjtech3-spec/agent-vs#readme",
-    "engines": {
-        "vscode": "^1.74.0"
-    },
-    "categories": [
-        "Other"
-    ],
-    "keywords": [
-        "azure",
-        "foundry",
-        "ai",
-        "copilot",
-        "coding"
-    ],
-    "activationEvents": [
-        "onView:agentVs.sidebar",
-        "onCommand:agentVs.openPanel",
-        "onCommand:agentVs.installDependencies",
-        "onCommand:agentVs.showOutput",
-        "onCommand:agentVs.setApiKey",
-        "onCommand:agentVs.clearApiKey",
-        "onCommand:agentVs.openSettings"
-    ],
-    "main": "./out/extension.js",
-    "icon": "vscode/media/icon.png",
-    "contributes": {
-        "viewsContainers": {
-            "activitybar": [
-                {
-                    "id": "agentVs",
-                    "title": "Azure Foundry Agent",
-                    "icon": "vscode/media/activity.svg"
-                }
-            ]
+  "name": "azure-ai-agent",
+  "displayName": "Azure AI Agent",
+  "description": "Agentic coding assistant powered by an Azure AI Foundry deployed model (e.g. GPT-5.4). Reads, writes, edits files and runs commands in your workspace, with streaming, image input, diff previews and per-workspace instructions.",
+  "version": "1.1.0",
+  "publisher": "CRJTECH",
+  "icon": "media/icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crjtech3-spec/agent-vs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/crjtech3-spec/agent-vs/issues"
+  },
+  "homepage": "https://github.com/crjtech3-spec/agent-vs#readme",
+  "keywords": [
+    "azure",
+    "openai",
+    "ai-foundry",
+    "gpt",
+    "agent",
+    "chat",
+    "copilot",
+    "code-generation"
+  ],
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["AI", "Chat", "Programming Languages"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Azure AI Agent",
+      "properties": {
+        "azure-ai-agent.endpoint": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Azure OpenAI / AI Foundry endpoint URL. Example: `https://models4dev.cognitiveservices.azure.com/`"
         },
-        "views": {
-            "agentVs": [
-                {
-                    "id": "agentVs.sidebar",
-                    "name": "Azure Foundry Agent",
-                    "contextualTitle": "Azure Foundry Agent"
-                }
-            ]
+        "azure-ai-agent.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "**Deprecated** plain-text API key fallback. Prefer **Azure AI: Set API Key** (stored in VS Code SecretStorage)."
         },
-        "commands": [
-            {
-                "command": "agentVs.openPanel",
-                "title": "Azure Foundry Agent: Open Sidebar"
-            },
-            {
-                "command": "agentVs.installDependencies",
-                "title": "Azure Foundry Agent: Install Backend Dependencies"
-            },
-            {
-                "command": "agentVs.showOutput",
-                "title": "Azure Foundry Agent: Show Output"
-            },
-            {
-                "command": "agentVs.setApiKey",
-                "title": "Azure Foundry Agent: Set Azure Foundry API Key"
-            },
-            {
-                "command": "agentVs.clearApiKey",
-                "title": "Azure Foundry Agent: Clear Azure Foundry API Key"
-            },
-            {
-                "command": "agentVs.openSettings",
-                "title": "Azure Foundry Agent: Open Settings"
-            }
-        ],
-        "configuration": {
-            "title": "Azure Foundry Agent",
-            "properties": {
-                "agentVs.foundryEndpoint": {
-                    "type": "string",
-                    "default": "",
-                    "scope": "machine",
-                    "markdownDescription": "Azure AI Foundry endpoint. You can paste a base `https://<resource>.openai.azure.com/openai/v1/` URL, a `https://<resource>.services.ai.azure.com/openai/v1/` URL, or a full responses endpoint."
-                },
-                "agentVs.foundryModel": {
-                    "type": "string",
-                    "default": "",
-                    "scope": "machine",
-                    "markdownDescription": "Model or deployment name sent to Azure AI Foundry. Use the deployment name your endpoint expects."
-                },
-                "agentVs.pythonPath": {
-                    "type": "string",
-                    "default": "python",
-                    "scope": "machine",
-                    "markdownDescription": "Python executable used to launch the Azure Foundry Agent backend."
-                },
-                "agentVs.envFile": {
-                    "type": "string",
-                    "default": "",
-                    "scope": "resource",
-                    "markdownDescription": "Optional workspace-relative env file. Azure Foundry Agent still loads `.agentvs/config.env` and `.env` automatically when this is empty."
-                },
-                "agentVs.maxIterations": {
-                    "type": "number",
-                    "default": 60,
-                    "minimum": 1,
-                    "maximum": 500,
-                    "scope": "resource",
-                    "markdownDescription": "Default iteration cap for new agent runs."
-                },
-                "agentVs.promptInstallDependencies": {
-                    "type": "boolean",
-                    "default": true,
-                    "scope": "machine",
-                    "markdownDescription": "Prompt to install missing Python backend dependencies automatically."
-                }
-            }
+        "azure-ai-agent.deployment": {
+          "type": "string",
+          "default": "gpt-5.4",
+          "description": "Deployment name from Azure AI Foundry."
+        },
+        "azure-ai-agent.apiVersion": {
+          "type": "string",
+          "default": "2024-12-01-preview",
+          "description": "Azure OpenAI REST API version."
+        },
+        "azure-ai-agent.systemPrompt": {
+          "type": "string",
+          "editPresentation": "multilineText",
+          "default": "",
+          "description": "Optional override for the built-in agent system prompt."
+        },
+        "azure-ai-agent.instructionsFiles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [".azure-ai-agent/instructions.md", "AGENTS.md", "CLAUDE.md"],
+          "description": "Workspace files to auto-prepend to the system prompt (first match wins)."
+        },
+        "azure-ai-agent.maxCompletionTokens": {
+          "type": "number",
+          "default": 16384,
+          "description": "Maximum tokens for a single completion."
+        },
+        "azure-ai-agent.temperature": {
+          "type": "number",
+          "default": 0.2,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Sampling temperature."
+        },
+        "azure-ai-agent.topP": {
+          "type": "number",
+          "default": 0.95,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Nucleus sampling top-p."
+        },
+        "azure-ai-agent.maxIterations": {
+          "type": "number",
+          "default": 25,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Maximum agent loop iterations per user request."
+        },
+        "azure-ai-agent.approvalMode": {
+          "type": "string",
+          "enum": ["auto", "destructive", "always"],
+          "default": "destructive",
+          "description": "When the agent should ask before running a tool."
+        },
+        "azure-ai-agent.diffPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a diff editor before applying write_file / edit_file / apply_patch when approval is required."
+        },
+        "azure-ai-agent.streamResponses": {
+          "type": "boolean",
+          "default": true,
+          "description": "Stream assistant text token-by-token (when no tool calls are pending)."
+        },
+        "azure-ai-agent.persistHistory": {
+          "type": "boolean",
+          "default": true,
+          "description": "Persist chat history per workspace across reloads."
+        },
+        "azure-ai-agent.allowedShells": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["powershell", "pwsh", "cmd", "bash", "sh"],
+          "description": "Shells the agent is allowed to invoke for run_command."
+        },
+        "azure-ai-agent.commandTimeoutMs": {
+          "type": "number",
+          "default": 120000,
+          "description": "Timeout in milliseconds for shell commands."
+        },
+        "azure-ai-agent.maxFileBytes": {
+          "type": "number",
+          "default": 200000,
+          "description": "Hard cap on bytes returned by read_file."
+        },
+        "azure-ai-agent.imageDetail": {
+          "type": "string",
+          "enum": ["auto", "low", "high"],
+          "default": "auto",
+          "description": "Image fidelity hint passed to multimodal requests."
+        },
+        "azure-ai-agent.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Mirror agent loop traffic to the Azure AI Agent Output channel."
+        },
+        "azure-ai-agent.webBrowsing.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow the agent to call web_fetch and web_search tools."
+        },
+        "azure-ai-agent.webBrowsing.maxBytes": {
+          "type": "number",
+          "default": 200000,
+          "description": "Maximum bytes web_fetch will read from a single URL."
+        },
+        "azure-ai-agent.webBrowsing.timeoutMs": {
+          "type": "number",
+          "default": 15000,
+          "description": "Per-request timeout for web_fetch / web_search (milliseconds)."
+        },
+        "azure-ai-agent.webBrowsing.allowedDomains": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "markdownDescription": "If non-empty, web_fetch will *only* fetch from these domains. Subdomains match. Wildcards: `*.example.com`."
+        },
+        "azure-ai-agent.webBrowsing.blockedDomains": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "markdownDescription": "Domains web_fetch will refuse. Evaluated before the allowlist. Subdomains match. Wildcards: `*.example.com`."
+        },
+        "azure-ai-agent.webSearch.provider": {
+          "type": "string",
+          "enum": ["duckduckgo", "tavily", "brave"],
+          "default": "duckduckgo",
+          "markdownDescription": "Search backend. **duckduckgo** needs no key. **tavily** / **brave** need an API key — set with `Azure AI: Set Web Search API Key`."
+        },
+        "azure-ai-agent.webSearch.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "**Deprecated** plain-text fallback for the web-search API key. Prefer **Azure AI: Set Web Search API Key** (stored in VS Code SecretStorage)."
+        },
+        "azure-ai-agent.proxy": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "HTTP proxy URL used by web_fetch / web_search (e.g. `http://corp-proxy:8080`). If empty, falls back to VS Code's `http.proxy` setting and finally to `HTTPS_PROXY` env."
+        },
+        "azure-ai-agent.historyCompressionThreshold": {
+          "type": "number",
+          "default": 60,
+          "description": "When the conversation grows beyond this many messages, older middle turns are folded into a single placeholder so recent turns stay verbatim."
+        },
+        "azure-ai-agent.testAfterEdit": {
+          "type": "boolean",
+          "default": true,
+          "description": "When the agent edits foo.ts and a sibling foo.test.ts / foo.spec.ts exists, append a hint nudging it to run them."
+        },
+        "azure-ai-agent.cost.inputUsdPerMtok": {
+          "type": "number",
+          "default": 0,
+          "description": "USD per 1M prompt tokens for your deployment. Used to compute the session cost shown in the status bar."
+        },
+        "azure-ai-agent.cost.outputUsdPerMtok": {
+          "type": "number",
+          "default": 0,
+          "description": "USD per 1M completion tokens for your deployment."
+        },
+        "azure-ai-agent.safety.scrubSecrets": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Redact obvious secrets (API keys, tokens, JWTs, private keys) from `read_file` / `run_command` output before sending to the model."
+        },
+        "azure-ai-agent.safety.autoApproveCommandPatterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "markdownDescription": "Regex patterns. A `run_command` whose command matches *any* listed pattern is auto-approved even in `destructive` approval mode. Example: `^npm test`, `^pytest( |$)`, `^git status`."
+        },
+        "azure-ai-agent.ui.compactMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use a denser compact chat layout with reduced spacing and collapsed tool logs by default."
+        },
+        "azure-ai-agent.mcp.servers": {
+          "type": "array",
+          "default": [],
+          "markdownDescription": "MCP stdio servers to launch for discovery/invocation. Each item: `{ id, command, args?, cwd?, env?, enabled? }`.",
+          "items": {
+            "type": "object"
+          }
+        },
+        "azure-ai-agent.mcp.approvalMode": {
+          "type": "string",
+          "enum": ["auto", "destructive", "always"],
+          "default": "destructive",
+          "description": "Approval mode specifically for MCP tool calls."
         }
+      }
     },
-    "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "package:vsix": "vsce package"
+    "commands": [
+      { "command": "azure-ai-agent.startChat", "title": "Azure AI: Open Agent Chat" },
+      { "command": "azure-ai-agent.setup", "title": "Azure AI: Guided Setup" },
+      { "command": "azure-ai-agent.openSettingsUi", "title": "Azure AI: Open Settings UI" },
+      { "command": "azure-ai-agent.runAgent", "title": "Azure AI: Ask Agent About Selection" },
+      { "command": "azure-ai-agent.explainCode", "title": "Azure AI: Explain Selected Code" },
+      { "command": "azure-ai-agent.fixCode", "title": "Azure AI: Fix Selected Code" },
+      { "command": "azure-ai-agent.generateCode", "title": "Azure AI: Generate Code From Description" },
+      { "command": "azure-ai-agent.clearChat", "title": "Azure AI: Clear Chat History" },
+      { "command": "azure-ai-agent.cancel", "title": "Azure AI: Cancel Current Request" },
+      { "command": "azure-ai-agent.openSettings", "title": "Azure AI: Open Settings" },
+      { "command": "azure-ai-agent.setApiKey", "title": "Azure AI: Set API Key (SecretStorage)" },
+      { "command": "azure-ai-agent.clearApiKey", "title": "Azure AI: Clear Stored API Key" },
+      { "command": "azure-ai-agent.attachImage", "title": "Azure AI: Attach Image to Next Message" },
+      { "command": "azure-ai-agent.showUsage", "title": "Azure AI: Show Token Usage" },
+      { "command": "azure-ai-agent.setWebSearchApiKey", "title": "Azure AI: Set Web Search API Key (SecretStorage)" },
+      { "command": "azure-ai-agent.clearWebSearchApiKey", "title": "Azure AI: Clear Stored Web Search API Key" },
+      { "command": "azure-ai-agent.openRunHistory", "title": "Azure AI: Open Run History (Replay)" },
+      { "command": "azure-ai-agent.clearRunHistory", "title": "Azure AI: Clear Run History" },
+      { "command": "azure-ai-agent.diffApprove", "title": "Azure AI: Approve Diff" },
+      { "command": "azure-ai-agent.diffDeny", "title": "Azure AI: Deny Diff" },
+      { "command": "azure-ai-agent.diffEdit", "title": "Azure AI: Edit Diff Manually" },
+      { "command": "azure-ai-agent.openMcpSetup", "title": "Azure AI: MCP Setup / Status" },
+      { "command": "azure-ai-agent.refreshMcp", "title": "Azure AI: Refresh MCP Servers" },
+      { "command": "azure-ai-agent.showMcpTools", "title": "Azure AI: Show Discovered MCP Tools" }
+    ],
+    "keybindings": [
+      { "command": "azure-ai-agent.startChat", "key": "ctrl+shift+a", "mac": "cmd+shift+a" },
+      { "command": "azure-ai-agent.cancel", "key": "ctrl+shift+escape", "mac": "cmd+shift+escape", "when": "focusedView == azure-ai-agent.chatView" },
+      { "command": "azure-ai-agent.runAgent", "key": "ctrl+alt+a", "mac": "cmd+alt+a", "when": "editorTextFocus" },
+      { "command": "azure-ai-agent.diffApprove", "key": "y", "when": "textCompareEditorVisible" },
+      { "command": "azure-ai-agent.diffDeny", "key": "n", "when": "textCompareEditorVisible" },
+      { "command": "azure-ai-agent.diffEdit", "key": "e", "when": "textCompareEditorVisible" }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "azure-ai-agent-view",
+          "title": "Azure AI Agent",
+          "icon": "media/icon.svg"
+        }
+      ]
     },
-    "devDependencies": {
-        "@vscode/vsce": "2.24.0",
-        "@types/vscode": "^1.74.0",
-        "@types/node": "16.x",
-        "typescript": "^4.9.4"
+    "views": {
+      "azure-ai-agent-view": [
+        {
+          "id": "azure-ai-agent.chatView",
+          "name": "Chat",
+          "type": "webview"
+        }
+      ]
     },
-    "dependencies": {
-    },
-    "overrides": {
-        "cheerio": "1.0.0-rc.12"
+    "menus": {
+      "editor/context": [
+        { "command": "azure-ai-agent.explainCode", "when": "editorHasSelection", "group": "azure-ai@1" },
+        { "command": "azure-ai-agent.fixCode", "when": "editorHasSelection", "group": "azure-ai@2" },
+        { "command": "azure-ai-agent.runAgent", "when": "editorHasSelection", "group": "azure-ai@3" }
+      ],
+      "view/title": [
+        { "command": "azure-ai-agent.clearChat", "when": "view == azure-ai-agent.chatView", "group": "navigation@1" },
+        { "command": "azure-ai-agent.cancel", "when": "view == azure-ai-agent.chatView", "group": "navigation@2" },
+        { "command": "azure-ai-agent.showUsage", "when": "view == azure-ai-agent.chatView", "group": "navigation@3" },
+        { "command": "azure-ai-agent.openSettings", "when": "view == azure-ai-agent.chatView", "group": "navigation@4" },
+        { "command": "azure-ai-agent.setup", "when": "view == azure-ai-agent.chatView", "group": "navigation@0" },
+        { "command": "azure-ai-agent.openSettingsUi", "when": "view == azure-ai-agent.chatView", "group": "navigation@0" }
+      ]
     }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "@types/vscode": "^1.80.0",
+    "@types/mocha": "^10.0.6",
+    "@vscode/test-electron": "^2.3.9",
+    "mocha": "^10.4.0",
+    "typescript": "^5.3.0",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {}
 }
