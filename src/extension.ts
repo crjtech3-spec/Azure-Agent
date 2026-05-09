@@ -785,6 +785,7 @@ function readConfig(): FullConfig {
             allowedShells: c.get<string[]>('allowedShells', ['powershell', 'pwsh', 'cmd', 'bash', 'sh']),
             commandTimeoutMs: c.get<number>('commandTimeoutMs', 120000),
             maxFileBytes: c.get<number>('maxFileBytes', 200000),
+            extraRoots: c.get<string[]>('extraRoots', []).map(s => s.trim()).filter(Boolean),
             workspaceTrusted: vscode.workspace.isTrusted,
             safety: {
                 scrubSecrets: c.get<boolean>('safety.scrubSecrets', true),

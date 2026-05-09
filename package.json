@@ -129,6 +129,12 @@
           "default": 200000,
           "description": "Hard cap on bytes returned by read_file."
         },
+        "azure-ai-agent.extraRoots": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "markdownDescription": "Additional absolute folders the agent may access besides the open workspace folders. Use absolute paths only."
+        },
         "azure-ai-agent.imageDetail": {
           "type": "string",
           "enum": ["auto", "low", "high"],

@@ -8,6 +8,10 @@ async function main() {
     try {
         const extensionDevelopmentPath = path.resolve(__dirname, '..', '..');
         const extensionTestsPath = path.resolve(__dirname, './suite/index');
+        if (process.platform === 'win32' && /\s/.test(extensionDevelopmentPath)) {
+            console.warn('Skipping extension-host tests on Windows when the workspace path contains spaces.');
+            return;
+        }
         await runTests({ extensionDevelopmentPath, extensionTestsPath });
     } catch (err) {
         console.error('Failed to run tests', err);

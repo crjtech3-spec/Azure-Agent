@@ -55,6 +55,8 @@ export interface ToolContext {
     maxFileBytes: number;
     commandTimeoutMs: number;
     allowedShells: string[];
+    /** Additional absolute folders the agent may access besides workspace folders. */
+    extraRoots?: string[];
     web: WebContext;
     safety: SafetyContext;
     /** Set when a tool is run in streaming mode. */
@@ -126,13 +128,49 @@ function workspaceRoot(): string {
     return folders[0].uri.fsPath;
 }
 
-function resolveSafe(rel: string): string {
-    const root = workspaceRoot();
-    const abs = path.resolve(root, rel);
-    const rootResolved = path.resolve(root);
-    const inside = abs === rootResolved || abs.startsWith(rootResolved + path.sep);
-    if (!inside) throw new Error(`Path "${rel}" escapes the workspace root.`);
-    return abs;
+function allowedRoots(ctx?: ToolContext): string[] {
+    const workspaceRoots = (vscode.workspace.workspaceFolders ?? []).map(f => path.resolve(f.uri.fsPath));
+    const extraRoots = (ctx?.extraRoots ?? []).map(r => path.resolve(r));
+    return [...workspaceRoots, ...extraRoots];
+}
+
+function isInsideRoot(abs: string, root: string): boolean {
+    const absNorm = path.resolve(abs);
+    const rootNorm = path.resolve(root);
+    return absNorm === rootNorm || absNorm.startsWith(rootNorm + path.sep);
+}
+
+function resolveSafe(inputPath: string, ctx?: ToolContext): string {
+    const roots = allowedRoots(ctx);
+    if (roots.length === 0) throw new Error('No workspace folder is open. Open a folder in VS Code first.');
+
+    if (path.isAbsolute(inputPath)) {
+        const abs = path.resolve(inputPath);
+        if (!roots.some(root => isInsideRoot(abs, root))) {
+            throw new Error(`Absolute path "${inputPath}" is outside the workspace folders and configured extraRoots.`);
+        }
+        return abs;
+    }
+
+    for (const root of roots) {
+        const abs = path.resolve(root, inputPath);
+        if (isInsideRoot(abs, root)) return abs;
+    }
+    throw new Error(`Path "${inputPath}" is outside the workspace folders and configured extraRoots.`);
+}
+
+function displayPath(abs: string, ctx?: ToolContext): string {
+    const roots = allowedRoots(ctx);
+    for (const root of roots) {
+        if (isInsideRoot(abs, root)) {
+            const rel = path.relative(root, abs).replace(/\\/g, '/');
+            const label = vscode.workspace.workspaceFolders?.find(f => path.resolve(f.uri.fsPath) === root)?.name
+                ?? path.basename(root)
+                ?? root;
+            return rel && rel !== '' ? `${label}/${rel}` : label;
+        }
+    }
+    return abs.replace(/\\/g, '/');
 }
 
 function asString(v: unknown, name: string): string {
@@ -171,7 +209,7 @@ function languageIdFor(rel: string): string {
 async function readFile(args: any, ctx: ToolContext): Promise<ToolResult> {
     try {
         const rel = asString(args.path, 'path');
-        const abs = resolveSafe(rel);
+        const abs = resolveSafe(rel, ctx);
         const data = await vscode.workspace.fs.readFile(vscode.Uri.file(abs));
         const startLine = typeof args.start_line === 'number' ? Math.max(1, args.start_line | 0) : undefined;
         const endLine = typeof args.end_line === 'number' ? Math.max(1, args.end_line | 0) : undefined;
@@ -474,7 +512,7 @@ async function runCommand(args: any, ctx: ToolContext): Promise<ToolResult> {
     try {
         const command = asString(args.command, 'command');
         const cwdRel = typeof args.cwd === 'string' && args.cwd.length > 0 ? args.cwd : '.';
-        const cwd = resolveSafe(cwdRel);
+        const cwd = resolveSafe(cwdRel, ctx);
         const shellChoice = pickShell(args.shell, ctx.allowedShells);
         if (!shellChoice) return err(`Shell not allowed. Allowed: ${ctx.allowedShells.join(', ')}`);
 
@@ -574,7 +612,7 @@ async function getDiagnostics(args: any): Promise<ToolResult> {
         const lines: string[] = [];
         let total = 0;
         for (const { uri, diags } of all) {
-            const r = path.relative(root, uri.fsPath).replace(/\\/g, '/');
+            const r = displayPath(uri.fsPath);
             for (const d of diags) {
                 lines.push(`${r}:${d.range.start.line + 1}:${d.range.start.character + 1}  ${vscode.DiagnosticSeverity[d.severity]}  ${d.message}`);
                 total++;
@@ -597,7 +635,7 @@ async function workspaceInfo(): Promise<ToolResult> {
         lines.push(`workspace_root: ${root}`);
         if (folders.length > 1) { lines.push('extra_folders:'); for (const f of folders.slice(1)) lines.push(`  - ${f.uri.fsPath}`); }
         if (editor) {
-            const rel = path.relative(root, editor.document.uri.fsPath).replace(/\\/g, '/');
+            const rel = displayPath(editor.document.uri.fsPath);
             const sel = editor.selection;
             lines.push(`active_file: ${rel}`);
             lines.push(`active_language: ${editor.document.languageId}`);
@@ -623,7 +661,7 @@ async function findSymbols(args: any): Promise<ToolResult> {
         );
         const root = workspaceRoot();
         const list = (symbols ?? []).slice(0, max).map(s => {
-            const rel = path.relative(root, s.location.uri.fsPath).replace(/\\/g, '/');
+            const rel = displayPath(s.location.uri.fsPath);
             const r = s.location.range;
             const kind = vscode.SymbolKind[s.kind];
             const container = s.containerName ? `  (in ${s.containerName})` : '';
@@ -1023,7 +1061,7 @@ function formatLocations(kind: string, rel: string, line: number, col: number, l
     const items = (locs ?? []).map(loc => {
         const u = (loc as any).uri ?? (loc as any).targetUri;
         const r = (loc as any).range ?? (loc as any).targetRange ?? (loc as any).targetSelectionRange;
-        const file = path.relative(root, u.fsPath).replace(/\\/g, '/');
+        const file = displayPath(u.fsPath);
         return `${file}:${r.start.line + 1}:${r.start.character + 1}`;
     });
     return ok(`${kind} of ${rel}:${line}:${col} → ${items.length} location(s)`, items.join('\n') || '(none)');
