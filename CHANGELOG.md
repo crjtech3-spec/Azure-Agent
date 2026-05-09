@@ -7,6 +7,8 @@ All notable changes to the Azure AI Agent extension are documented here.
 ### Changed
 - Shortened the Marketplace description for readability and end-user focus.
 - Updated repository, homepage, and issue tracker links to the current GitHub repository.
+- Refreshed the settings and chat UI with a more modern, premium, beginner-friendly experience.
+- Simplified onboarding with guided setup, quick actions, clearer labels, and advanced options hidden by default.
 
 ## 1.1.2 — 2026-05-09
 

@@ -107,24 +107,33 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 <div id="app-shell">
   <div id="welcome" hidden></div>
   <div id="hero">
-    <div>
+    <div class="hero-copy">
       <div id="hero-title">Azure AI Agent</div>
-      <div id="hero-subtitle">Modern workspace-aware coding assistant with tools, web, tasks, memory, and approvals.</div>
+      <div id="hero-subtitle">A polished coding assistant for Azure-powered development, research, and workspace automation.</div>
     </div>
-    <div id="hero-badge">Live</div>
+    <div class="hero-actions">
+      <button id="hero-settings" class="ghost">Setup</button>
+      <div id="hero-badge">Ready</div>
+    </div>
   </div>
+  <div id="quick-actions"></div>
   <div id="todos" hidden></div>
   <div id="messages" aria-live="polite"></div>
   <div id="status"></div>
   <div id="composer">
     <div id="attachments"></div>
     <div id="mention-popup" hidden></div>
-    <textarea id="input" rows="3" placeholder="Ask the agent…  (Enter to send, Shift+Enter for newline, @ to reference a file, / for commands)"></textarea>
+    <div class="composer-topline">
+      <div class="composer-title">Ask anything about your code</div>
+      <div class="composer-hint">Enter to send · Shift+Enter for newline · @ to reference files</div>
+    </div>
+    <textarea id="input" rows="3" placeholder="Example: Review this file, explain the bug, and suggest the safest fix."></textarea>
     <div class="row">
-      <button id="attach" title="Attach image">📎</button>
+      <button id="attach" class="ghost" title="Attach image">Attach image</button>
       <button id="send" title="Send (Enter)">Send</button>
       <button id="cancel" title="Cancel" hidden>Stop</button>
-      <button id="compact-toggle" title="Toggle compact mode">Compact</button>
+      <button id="clear" class="ghost" title="Clear chat">Clear</button>
+      <button id="compact-toggle" class="ghost" title="Toggle compact mode">Compact</button>
       <span id="usage"></span>
     </div>
   </div>
@@ -134,8 +143,6 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 </html>`;
     }
 }
-
-// ---------- @mention helpers ----------
 
 async function mentionSearch(q: string): Promise<string[]> {
     const folders = vscode.workspace.workspaceFolders;
@@ -170,8 +177,6 @@ function makeNonce(): string {
     return s;
 }
 
-// ---------- CSS ----------
-
 const CSS = `
 :root {
   --bg: var(--vscode-sideBar-background);
@@ -180,34 +185,59 @@ const CSS = `
   --border: color-mix(in srgb, var(--vscode-panel-border, rgba(128,128,128,0.3)) 70%, transparent);
   --accent: var(--vscode-textLink-foreground);
   --accent-2: var(--vscode-focusBorder);
+  --surface: color-mix(in srgb, var(--vscode-editorWidget-background) 92%, transparent);
+  --surface-2: color-mix(in srgb, var(--vscode-editorHoverWidget-background) 92%, transparent);
   --bubble-user: color-mix(in srgb, var(--vscode-editor-inactiveSelectionBackground) 82%, transparent);
   --bubble-assistant: color-mix(in srgb, var(--vscode-editorWidget-background) 92%, transparent);
   --bubble-tool: color-mix(in srgb, var(--vscode-editorHoverWidget-background) 92%, transparent);
   --code-bg: var(--vscode-textCodeBlock-background);
   --error: var(--vscode-errorForeground);
-  --shadow: 0 10px 30px rgba(0,0,0,0.16);
+  --ok: var(--vscode-testing-iconPassed);
+  --shadow: 0 14px 36px rgba(0,0,0,0.18);
 }
 * { box-sizing: border-box; }
-html, body { padding: 0; margin: 0; height: 100%; color: var(--fg); background:
+html, body {
+  padding: 0; margin: 0; height: 100%; color: var(--fg); background:
   radial-gradient(circle at top, color-mix(in srgb, var(--accent) 10%, transparent), transparent 35%),
   var(--bg);
-  font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); }
+  font-family: var(--vscode-font-family); font-size: var(--vscode-font-size);
+}
 body { display: flex; flex-direction: column; }
 #app-shell { display: flex; flex-direction: column; min-height: 100%; }
-body.compact #hero-subtitle, body.compact #welcome .sub, body.compact #status, body.compact #todos { display: none; }
+body.compact #hero-subtitle, body.compact #welcome .sub, body.compact #status, body.compact #todos, body.compact #quick-actions, body.compact .composer-topline { display: none; }
 body.compact .msg { margin: 4px 0; padding: 7px 9px; border-radius: 10px; box-shadow: none; }
 body.compact #messages { padding: 6px; }
 body.compact #composer { padding: 6px; }
 body.compact #input { min-height: 42px; border-radius: 8px; box-shadow: none; }
-#welcome { margin: 10px 10px 0; padding: 14px; border: 1px solid var(--border); border-radius: 16px; background: color-mix(in srgb, var(--bubble-assistant) 90%, transparent); box-shadow: var(--shadow); animation: slideIn .18s ease-out; }
-#welcome .title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-#welcome .sub { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+#welcome, #quick-actions, #todos {
+  margin: 10px 10px 0; border: 1px solid var(--border); border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent); box-shadow: var(--shadow);
+  animation: slideIn .18s ease-out;
+}
+#welcome { padding: 16px; }
+#welcome .title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+#welcome .sub { color: var(--muted); font-size: 12px; margin-bottom: 12px; line-height: 1.5; }
 #welcome .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-#hero { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 12px 8px; border-bottom: 1px solid var(--border); }
-#hero-title { font-size: 15px; font-weight: 700; letter-spacing: 0.02em; }
-#hero-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
-#hero-badge { padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--fg); font-size: 11px; border: 1px solid var(--border); animation: pulse 2.2s ease-in-out infinite; }
-#todos { margin: 10px 10px 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--bubble-assistant) 88%, transparent); box-shadow: var(--shadow); animation: slideIn .18s ease-out; }
+#welcome .steps { display:grid; gap:8px; margin: 12px 0; }
+#welcome .step { display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:12px; background: var(--surface-2); border:1px solid var(--border); }
+#welcome .step .num { width:22px; height:22px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; background: color-mix(in srgb, var(--accent) 20%, transparent); }
+#hero {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 12px 10px; border-bottom: 1px solid var(--border);
+}
+.hero-copy { min-width: 0; }
+.hero-actions { display:flex; align-items:center; gap:8px; }
+#hero-title { font-size: 16px; font-weight: 800; letter-spacing: 0.02em; }
+#hero-subtitle { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+#hero-badge { padding: 5px 10px; border-radius: 999px; background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--fg); font-size: 11px; border: 1px solid var(--border); }
+#quick-actions { padding: 12px; }
+#quick-actions .title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
+#quick-actions .chips { display:flex; gap:8px; flex-wrap:wrap; }
+.chip {
+  padding:8px 10px; border-radius:999px; border:1px solid var(--border); background: var(--surface-2);
+  cursor:pointer; font-size:12px;
+}
+.chip:hover { border-color: var(--accent-2); }
+#todos { padding: 10px 12px; }
 #todos .title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
 #todos .todo { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
 #todos .dot { width: 10px; height: 10px; border-radius: 999px; background: var(--muted); }
@@ -216,20 +246,42 @@ body.compact #input { min-height: 42px; border-radius: 8px; box-shadow: none; }
 #todos .todo .label { flex: 1; }
 #todos .todo.done .label { text-decoration: line-through; opacity: .8; }
 #messages { flex: 1; overflow-y: auto; padding: 10px; scroll-behavior: smooth; }
+#messages.empty::before {
+  content: 'Start with a question, paste code, or use one of the quick actions above.';
+  display:block; margin: 18px 8px; padding: 14px; border-radius: 14px; color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 90%, transparent); border:1px dashed var(--border);
+}
 #status { padding: 2px 12px 8px; color: var(--muted); font-size: 11px; min-height: 18px; }
-#composer { border-top: 1px solid var(--border); padding: 10px; position: sticky; bottom: 0; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); }
-#composer .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+#composer {
+  border-top: 1px solid var(--border); padding: 10px; position: sticky; bottom: 0;
+  background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px);
+}
+.composer-topline { display:flex; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.composer-title { font-size:12px; font-weight:700; }
+.composer-hint { font-size:11px; color: var(--muted); }
+#composer .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 #composer #usage { margin-left: auto; color: var(--muted); font-size: 11px; }
-#input { width: 100%; resize: vertical; min-height: 56px; max-height: 240px; padding: 10px 12px;
+#input {
+  width: 100%; resize: vertical; min-height: 64px; max-height: 240px; padding: 12px 13px;
   background: var(--vscode-input-background); color: var(--vscode-input-foreground);
-  border: 1px solid var(--vscode-input-border, var(--border)); border-radius: 12px;
-  font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); box-shadow: var(--shadow); transition: border-color .15s ease, transform .15s ease; }
+  border: 1px solid var(--vscode-input-border, var(--border)); border-radius: 14px;
+  font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); box-shadow: var(--shadow);
+  transition: border-color .15s ease, transform .15s ease;
+}
 #input:focus { outline: none; border-color: var(--accent-2); transform: translateY(-1px); }
-button { background: linear-gradient(180deg, color-mix(in srgb, var(--vscode-button-background) 92%, white 8%), var(--vscode-button-background)); color: var(--vscode-button-foreground);
-  border: 0; padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: transform .12s ease, filter .12s ease; }
+button {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--vscode-button-background) 92%, white 8%), var(--vscode-button-background));
+  color: var(--vscode-button-foreground); border: 0; padding: 8px 12px; border-radius: 10px; cursor: pointer;
+  transition: transform .12s ease, filter .12s ease;
+}
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--border); }
 button:hover { background: var(--vscode-button-hoverBackground); transform: translateY(-1px); }
+button.ghost:hover { background: var(--surface-2); }
 button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.msg { margin: 8px 0; padding: 10px 12px; border-radius: 14px; white-space: pre-wrap; word-wrap: break-word; box-shadow: var(--shadow); animation: slideIn .18s ease-out; }
+.msg {
+  margin: 8px 0; padding: 12px 13px; border-radius: 16px; white-space: pre-wrap; word-wrap: break-word;
+  box-shadow: var(--shadow); animation: slideIn .18s ease-out;
+}
 .msg.user { background: var(--bubble-user); margin-left: 18px; }
 .msg.assistant { background: var(--bubble-assistant); border: 1px solid var(--border); margin-right: 18px; }
 .msg.tool { background: var(--bubble-tool); border-left: 3px solid var(--accent); font-family: var(--vscode-editor-font-family); font-size: 12px; }
@@ -241,20 +293,23 @@ button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .msg img.thumb { max-width: 240px; max-height: 200px; border-radius: 8px; margin: 4px 4px 0 0; vertical-align: top; }
 .tool-summary { font-weight: 600; }
 .tool-detail { color: var(--muted); margin-top: 4px; max-height: 160px; overflow: auto; }
-.attachment { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; margin: 2px;
-  border: 1px solid var(--border); border-radius: 999px; font-size: 11px; background: color-mix(in srgb, var(--bubble-tool) 80%, transparent); animation: slideIn .18s ease-out; }
+.attachment {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; margin: 2px;
+  border: 1px solid var(--border); border-radius: 999px; font-size: 11px;
+  background: color-mix(in srgb, var(--bubble-tool) 80%, transparent); animation: slideIn .18s ease-out;
+}
 .attachment img { width: 18px; height: 18px; object-fit: cover; border-radius: 4px; }
 .attachment .x { cursor: pointer; color: var(--muted); }
-#mention-popup { position: absolute; left: 10px; right: 10px; bottom: 94px; max-height: 180px; overflow: auto;
-  background: var(--vscode-editorWidget-background); border: 1px solid var(--border); border-radius: 12px; z-index: 5; box-shadow: var(--shadow); }
+#mention-popup {
+  position: absolute; left: 10px; right: 10px; bottom: 118px; max-height: 180px; overflow: auto;
+  background: var(--vscode-editorWidget-background); border: 1px solid var(--border); border-radius: 12px; z-index: 5; box-shadow: var(--shadow);
+}
 #mention-popup .item { padding: 8px 10px; cursor: pointer; font-family: var(--vscode-editor-font-family); font-size: 12px; }
 #mention-popup .item:hover, #mention-popup .item.active { background: var(--vscode-list-hoverBackground); }
 .dragover { outline: 2px dashed var(--accent); outline-offset: -4px; }
+a { color: var(--accent); }
 @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulse { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.04); opacity: 1; } }
 `;
-
-// ---------- Webview client JS ----------
 
 const CLIENT_JS = `
 (function () {
@@ -265,76 +320,68 @@ const CLIENT_JS = `
   const $input = document.getElementById('input');
   const $send = document.getElementById('send');
   const $cancel = document.getElementById('cancel');
+  const $clear = document.getElementById('clear');
   const $attach = document.getElementById('attach');
   const $compactToggle = document.getElementById('compact-toggle');
   const $attachments = document.getElementById('attachments');
   const $mention = document.getElementById('mention-popup');
   const $usage = document.getElementById('usage');
   const $todos = document.getElementById('todos');
+  const $quickActions = document.getElementById('quick-actions');
+  const $heroSettings = document.getElementById('hero-settings');
 
-  /** @type {{dataUrl:string,name:string}[]} */
   let attachments = [];
   let busy = false;
   let compactMode = false;
-  let streamingMsg = null;   // {el, buf} when streaming an assistant bubble
-  let lastUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+  let streamingMsg = null;
   let liveToolStreams = new Map();
 
-  // ---- markdown ----
   function escapeHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
   function renderMarkdown(src) {
     if (typeof src !== 'string') src = String(src ?? '');
-    // Code fences first
     const parts = [];
-    let i = 0;
     const re = /\\\`\\\`\\\`(\\w*)\\n([\\s\\S]*?)\\n\\\`\\\`\\\`/g;
     let m, last = 0;
     while ((m = re.exec(src)) !== null) {
       if (m.index > last) parts.push({ kind:'text', text: src.slice(last, m.index) });
-      parts.push({ kind:'code', lang: m[1], text: m[2] });
+      parts.push({ kind:'code', text: m[2] });
       last = m.index + m[0].length;
     }
     if (last < src.length) parts.push({ kind:'text', text: src.slice(last) });
-    return parts.map(p => {
-      if (p.kind === 'code') return '<pre><code>' + escapeHtml(p.text) + '</code></pre>';
-      return inlineMarkdown(p.text);
-    }).join('');
+    return parts.map(p => p.kind === 'code' ? '<pre><code>' + escapeHtml(p.text) + '</code></pre>' : inlineMarkdown(p.text)).join('');
   }
   function inlineMarkdown(text) {
     let s = escapeHtml(text);
-    // headings
     s = s.replace(/^######\\s?(.+)$/gm, '<h6>$1</h6>')
          .replace(/^#####\\s?(.+)$/gm, '<h5>$1</h5>')
          .replace(/^####\\s?(.+)$/gm, '<h4>$1</h4>')
          .replace(/^###\\s?(.+)$/gm, '<h3>$1</h3>')
          .replace(/^##\\s?(.+)$/gm, '<h2>$1</h2>')
          .replace(/^#\\s?(.+)$/gm, '<h1>$1</h1>');
-    // inline code
     s = s.replace(/\`([^\`\\n]+)\`/g, '<code>$1</code>');
-    // bold/italic
     s = s.replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
     s = s.replace(/(?<!\\*)\\*([^*\\n]+)\\*(?!\\*)/g, '<em>$1</em>');
-    // links
     s = s.replace(/\\[([^\\]]+)\\]\\((https?:[^)]+)\\)/g, '<a href="$2">$1</a>');
-    // bullets
     s = s.replace(/^(?:- |\\* )(.*)$/gm, '<li>$1</li>');
     s = s.replace(/(<li>[\\s\\S]+?<\\/li>)(?!<\\/ul>)/g, '<ul>$1</ul>');
-    // line breaks
     s = s.replace(/\\n/g, '<br/>');
     return s;
   }
 
+  function refreshEmptyState() {
+    $messages.classList.toggle('empty', !$messages.children.length);
+  }
   function addMessage(role, htmlContent, extraClass = '') {
     const el = document.createElement('div');
     el.className = 'msg ' + role + (extraClass ? ' ' + extraClass : '');
     el.innerHTML = '<div class="role">' + role + '</div>' + htmlContent;
     $messages.appendChild(el);
+    refreshEmptyState();
     $messages.scrollTop = $messages.scrollHeight;
     return el;
   }
-
   function renderUserMessage(text, imageUrls) {
     let html = '';
     if (imageUrls && imageUrls.length > 0) {
@@ -345,9 +392,8 @@ const CLIENT_JS = `
     }
     addMessage('user', html);
   }
-
   function startAssistantBubble() {
-    const el = addMessage('assistant', '');
+    const el = addMessage('assistant', '<div class="typing">Thinking…</div>');
     streamingMsg = { el, buf: '' };
   }
   function appendAssistantDelta(t) {
@@ -365,7 +411,6 @@ const CLIENT_JS = `
     streamingMsg = null;
     $messages.scrollTop = $messages.scrollHeight;
   }
-
   function toolBlock(title, body, extraClass) {
     const id = 'tool-' + Math.random().toString(36).slice(2);
     const html = '<details class="tool-collapsible" ' + (compactMode ? '' : 'open') + '>' +
@@ -386,17 +431,16 @@ const CLIENT_JS = `
   }
   function renderToolCall(ev) {
     const name = String(ev.tool || '?');
-    const args = ev.args !== undefined ? '<pre>' + escapeHtml(safeJson(ev.args)) + '</pre>' : '';
+    const args = ev.args !== undefined ? '<pre>' + escapeHtml(safeJson(ev.args)) + '</pre>' : '<div class="tool-detail">Running…</div>';
     toolBlock('[' + toolCategory(name) + '] → ' + escapeHtml(name), args, 'call');
   }
   function renderToolResult(ev) {
     const cls = ev.ok ? '' : 'error';
     const name = String(ev.tool || '?');
     const head = '[' + toolCategory(name) + '] ' + (ev.ok ? '✓ ' : '✗ ') + escapeHtml(name);
-    const body = ev.text ? '<pre>' + escapeHtml(String(ev.text).slice(0, 4000)) + '</pre>' : '';
+    const body = ev.text ? '<pre>' + escapeHtml(String(ev.text).slice(0, 4000)) + '</pre>' : '<div class="tool-detail">Completed.</div>';
     toolBlock(head, body, cls);
   }
-
   function safeJson(v) {
     try { return JSON.stringify(v, null, 2); } catch { return String(v); }
   }
@@ -404,33 +448,42 @@ const CLIENT_JS = `
     busy = b;
     $send.disabled = b;
     $cancel.hidden = !b;
-    $input.disabled = false;
   }
   function setStatus(msg) { $status.textContent = msg || ''; }
-
   function setUsage(u) {
-    lastUsage = u;
-    $usage.textContent = u && u.total_tokens ? ('tokens: ' + u.total_tokens.toLocaleString()) : '';
+    $usage.textContent = u && u.total_tokens ? ('Tokens: ' + u.total_tokens.toLocaleString()) : '';
   }
-
   function renderTodos(items) {
-    if (!$todos) return;
     if (!items || items.length === 0) {
       $todos.hidden = true;
       $todos.innerHTML = '';
       return;
     }
     $todos.hidden = false;
-    $todos.innerHTML = '<div class="title">Plan</div>' + items.map(t =>
+    $todos.innerHTML = '<div class="title">Current plan</div>' + items.map(t =>
       '<div class="todo ' + escapeHtml(String(t.status || 'pending')) + '">' +
       '<span class="dot"></span>' +
       '<span class="label">' + escapeHtml(String(t.text || '')) + '</span>' +
       '</div>'
     ).join('');
   }
-
+  function renderQuickActions() {
+    const prompts = [
+      'Explain the selected code',
+      'Find the bug in this file',
+      'Create a step-by-step fix plan',
+      'Write tests for this module',
+      'Summarize this repository'
+    ];
+    $quickActions.innerHTML = '<div class="title">Quick actions</div><div class="chips">' + prompts.map(p => '<button class="chip" data-prompt="' + escapeHtml(p) + '">' + escapeHtml(p) + '</button>').join('') + '</div>';
+    Array.from($quickActions.querySelectorAll('[data-prompt]')).forEach(el => {
+      el.addEventListener('click', () => {
+        $input.value = el.getAttribute('data-prompt') || '';
+        $input.focus();
+      });
+    });
+  }
   function renderWelcome(configured) {
-    if (!$welcome) return;
     if (configured) {
       $welcome.hidden = true;
       $welcome.innerHTML = '';
@@ -439,16 +492,22 @@ const CLIENT_JS = `
     $welcome.hidden = false;
     $welcome.innerHTML =
       '<div class="title">Welcome to Azure AI Agent</div>' +
-      '<div class="sub">Set your endpoint, deployment, and API key to get started. You can also configure search, safety, and approvals from the guided settings screen.</div>' +
+      '<div class="sub">This guided experience is designed to be simple even if you are not technical. Follow the steps below once, then start chatting naturally.</div>' +
+      '<div class="steps">' +
+      '<div class="step"><div class="num">1</div><div><strong>Open setup</strong><div class="sub">Add your Azure endpoint, deployment name, and API key.</div></div></div>' +
+      '<div class="step"><div class="num">2</div><div><strong>Choose a safe preset</strong><div class="sub">Balanced mode is recommended for most users.</div></div></div>' +
+      '<div class="step"><div class="num">3</div><div><strong>Ask your first question</strong><div class="sub">Example: Explain this file and suggest improvements.</div></div></div>' +
+      '</div>' +
       '<div class="actions">' +
       '<button id="welcome-setup">Open guided setup</button>' +
-      '<button id="welcome-settings">Open settings UI</button>' +
+      '<button id="welcome-example" class="ghost">Insert example prompt</button>' +
       '</div>';
     document.getElementById('welcome-setup')?.addEventListener('click', () => vscode.postMessage({ type: 'openSettings' }));
-    document.getElementById('welcome-settings')?.addEventListener('click', () => vscode.postMessage({ type: 'openSettings' }));
+    document.getElementById('welcome-example')?.addEventListener('click', () => {
+      $input.value = 'Explain this code in simple terms and suggest the safest improvements.';
+      $input.focus();
+    });
   }
-
-  // ---- send / attachments ----
   function renderAttachments() {
     $attachments.innerHTML = '';
     attachments.forEach((a, i) => {
@@ -465,7 +524,6 @@ const CLIENT_JS = `
       });
     });
   }
-
   function send() {
     const text = $input.value;
     if (!text.trim() && attachments.length === 0) return;
@@ -479,27 +537,26 @@ const CLIENT_JS = `
     setBusy(true);
     setStatus('Working…');
   }
-
   function applyCompactMode() {
     document.body.classList.toggle('compact', compactMode);
-    if ($compactToggle) $compactToggle.textContent = compactMode ? 'Comfortable' : 'Compact';
+    $compactToggle.textContent = compactMode ? 'Comfortable' : 'Compact';
   }
 
   $send.addEventListener('click', send);
   $cancel.addEventListener('click', () => vscode.postMessage({ type: 'cancel' }));
+  $clear.addEventListener('click', () => vscode.postMessage({ type: 'clear' }));
   $attach.addEventListener('click', () => vscode.postMessage({ type: 'attachImage' }));
-  $compactToggle?.addEventListener('click', () => {
+  $heroSettings.addEventListener('click', () => vscode.postMessage({ type: 'openSettings' }));
+  $compactToggle.addEventListener('click', () => {
     compactMode = !compactMode;
     applyCompactMode();
     vscode.postMessage({ type: 'setCompactMode', compact: compactMode });
   });
-
   $input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); return; }
     if (e.key === 'Escape' && busy) { vscode.postMessage({ type: 'cancel' }); }
   });
 
-  // ---- drag & drop and paste of images ----
   function ingestFiles(files) {
     Array.from(files).forEach(f => {
       if (!f.type || !f.type.startsWith('image/')) return;
@@ -518,16 +575,12 @@ const CLIENT_JS = `
     if (e.dataTransfer && e.dataTransfer.files) ingestFiles(e.dataTransfer.files);
   });
   $input.addEventListener('paste', (e) => {
-    if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
-      ingestFiles(e.clipboardData.files);
-    }
+    if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) ingestFiles(e.clipboardData.files);
   });
 
-  // ---- @mentions ----
   let mentionStart = -1;
   let mentionItems = [];
   let mentionActive = 0;
-
   function hideMention() { $mention.hidden = true; mentionStart = -1; mentionItems = []; }
   function showMention(items) {
     mentionItems = items;
@@ -535,9 +588,7 @@ const CLIENT_JS = `
     if (items.length === 0) { hideMention(); return; }
     $mention.innerHTML = items.map((p, i) => '<div class="item' + (i===0?' active':'') + '" data-i="' + i + '">' + escapeHtml(p) + '</div>').join('');
     $mention.hidden = false;
-    Array.from($mention.querySelectorAll('.item')).forEach(el => {
-      el.addEventListener('click', () => acceptMention(parseInt(el.getAttribute('data-i'), 10)));
-    });
+    Array.from($mention.querySelectorAll('.item')).forEach(el => el.addEventListener('click', () => acceptMention(parseInt(el.getAttribute('data-i'), 10))));
   }
   function acceptMention(i) {
     if (i < 0 || i >= mentionItems.length) return;
@@ -571,7 +622,6 @@ const CLIENT_JS = `
     Array.from($mention.querySelectorAll('.item')).forEach((el, i) => el.classList.toggle('active', i === mentionActive));
   }
 
-  // ---- host -> webview ----
   window.addEventListener('message', (e) => {
     const msg = e.data;
     if (!msg) return;
@@ -587,12 +637,12 @@ const CLIENT_JS = `
         renderAttachments();
         break;
       case 'injectUser':
-        // The host already triggered runAgent — just render the bubble.
         renderUserMessage(String(msg.text || ''), []);
         setBusy(true);
         break;
       case 'cleared':
         $messages.innerHTML = '';
+        refreshEmptyState();
         setStatus('History cleared.');
         break;
       case 'mentionResults':
@@ -609,7 +659,7 @@ const CLIENT_JS = `
   function handleAgentEvent(ev) {
     if (!ev) return;
     switch (ev.kind) {
-      case 'iteration': setStatus('Iteration ' + ev.iteration + '…'); break;
+      case 'iteration': setStatus('Working on step ' + ev.iteration + '…'); break;
       case 'assistant_text_delta': appendAssistantDelta(ev.text || ''); break;
       case 'assistant_text': finalizeAssistant(ev.text || ''); break;
       case 'tool_call': renderToolCall(ev); break;
@@ -660,17 +710,18 @@ const CLIENT_JS = `
           addMessage('assistant', renderMarkdown(typeof m.content === 'string' ? m.content : ''));
         }
         if (m.tool_calls) {
-          for (const tc of m.tool_calls) {
-            renderToolCall({ tool: tc.function.name, args: tryParse(tc.function.arguments) });
-          }
+          for (const tc of m.tool_calls) renderToolCall({ tool: tc.function.name, args: tryParse(tc.function.arguments) });
         }
       } else if (m.role === 'tool') {
         renderToolResult({ tool: '(tool)', ok: true, text: typeof m.content === 'string' ? m.content : '' });
       }
     }
+    refreshEmptyState();
   }
   function tryParse(s) { try { return JSON.parse(s); } catch { return s; } }
 
+  renderQuickActions();
+  refreshEmptyState();
   vscode.postMessage({ type: 'ready' });
 })();
 `;

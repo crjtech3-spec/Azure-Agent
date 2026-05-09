@@ -1,67 +1,58 @@
 # Azure AI Agent for VS Code
 
-Azure AI Agent is a coding assistant for Visual Studio Code powered by your **Azure AI Foundry / Azure OpenAI deployment**.
+Azure AI Agent is a polished coding assistant for Visual Studio Code powered by your Azure AI Foundry or Azure OpenAI deployment.
 
-It can inspect and edit files, run commands, browse the web, use MCP tools, accept image input, and stream responses live inside VS Code.
+It helps you understand code, edit files, run commands, work with images, browse documentation, and use guided setup inside VS Code.
 
-## Features
+## Why users like it
 
-- Agentic coding with workspace-aware tool calling
-- File editing with optional diff-preview approval
-- Command execution for builds, tests, and tasks
-- Streaming responses in chat
-- Image input via paste, drag-and-drop, or file picker
-- Workspace instructions from `.azure-ai-agent/instructions.md`, `AGENTS.md`, or `CLAUDE.md`
-- Run history with replay support
-- Token usage and cost tracking
-- `@mention` file references in chat
-- Web search and fetch tools
-- MCP server support with dynamic tool discovery
-- Secure key storage with VS Code SecretStorage
-- Guided Settings UI with setup, diagnostics, and MCP configuration
+- Clean guided setup designed for both technical and non-technical users
+- Modern chat experience with streaming responses and quick actions
+- Workspace-aware assistance for code understanding, fixes, and generation
+- Image input by paste, drag-and-drop, or file picker
+- Safer workflows with approvals, diagnostics, and secure key storage
+- Optional web search and MCP tool support
 
 ## Quick Start
 
 1. Install **Azure AI Agent**.
 2. Open **Azure AI: Open Settings UI**.
-3. Configure your:
-   - Azure endpoint
-   - deployment name
-   - API version
-   - API key
-4. Open chat with **Ctrl+Shift+A**.
+3. Enter your Azure endpoint, deployment name, API version, and API key.
+4. Choose a preset such as **Balanced**.
+5. Test the connection and start chatting.
+
+## Highlights
+
+- Guided settings with health checks and friendly setup flow
+- Premium chat UI with quick prompts and easy onboarding
+- File-aware coding help with `@mention` support
+- Command execution for builds, tests, and tasks
+- Live streaming responses in chat
+- Secure secret storage using VS Code SecretStorage
+- Web search and fetch support
+- MCP server support and discovered tool listing
+- Run history and token usage visibility
 
 ## Common Commands
 
-- **Azure AI: Open Agent Chat** — open the chat view
-- **Azure AI: Guided Setup** — run the setup flow
-- **Azure AI: Open Settings UI** — open the guided settings experience
-- **Azure AI: Ask Agent About Selection** — prompt about the current selection
-- **Azure AI: Explain Selected Code** — explain selected code
-- **Azure AI: Fix Selected Code** — improve or fix selected code
-- **Azure AI: Generate Code From Description** — one-shot code generation
-- **Azure AI: Show Token Usage** — show cumulative session token usage
-- **Azure AI: Open Run History (Replay)** — replay a previous run
-- **Azure AI: MCP Setup / Status** — inspect MCP status
-- **Azure AI: Refresh MCP Servers** — refresh MCP servers and rediscover tools
-- **Azure AI: Show Discovered MCP Tools** — list discovered MCP tools
+- **Azure AI: Open Agent Chat**
+- **Azure AI: Guided Setup**
+- **Azure AI: Open Settings UI**
+- **Azure AI: Ask Agent About Selection**
+- **Azure AI: Explain Selected Code**
+- **Azure AI: Fix Selected Code**
+- **Azure AI: Generate Code From Description**
+- **Azure AI: Show Token Usage**
+- **Azure AI: Open Run History (Replay)**
+- **Azure AI: MCP Setup / Status**
 
-## Settings Highlights
+## Good for
 
-- `azure-ai-agent.endpoint`
-- `azure-ai-agent.deployment`
-- `azure-ai-agent.apiVersion`
-- `azure-ai-agent.approvalMode`
-- `azure-ai-agent.mcp.approvalMode`
-- `azure-ai-agent.diffPreview`
-- `azure-ai-agent.streamResponses`
-- `azure-ai-agent.maxIterations`
-- `azure-ai-agent.instructionsFiles`
-- `azure-ai-agent.webBrowsing.*`
-- `azure-ai-agent.webSearch.*`
-- `azure-ai-agent.safety.*`
-- `azure-ai-agent.ui.compactMode`
-- `azure-ai-agent.mcp.servers`
+- explaining unfamiliar code
+- planning safe fixes
+- generating boilerplate
+- reviewing files with context
+- testing ideas quickly inside VS Code
 
 ## Repository
 
