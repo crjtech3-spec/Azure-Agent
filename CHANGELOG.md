@@ -2,6 +2,13 @@
 
 All notable changes to the Azure AI Agent extension are documented here.
 
+## 1.1.4 — 2026-05-09
+
+### Changed
+- Release metadata bump for the refreshed premium chat and settings experience.
+- Kept Marketplace-facing documentation aligned with the latest guided onboarding and setup flow.
+- Verified release packaging for a clean publish-ready build.
+
 ## 1.1.3 — 2026-05-09
 
 ### Changed
