@@ -2,6 +2,12 @@
 
 All notable changes to the Azure AI Agent extension are documented here.
 
+## 1.1.3 — 2026-05-09
+
+### Changed
+- Shortened the Marketplace description for readability and end-user focus.
+- Updated repository, homepage, and issue tracker links to the current GitHub repository.
+
 ## 1.1.2 — 2026-05-09
 
 ### Changed
