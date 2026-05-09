@@ -2,6 +2,14 @@
 
 All notable changes to the Azure AI Agent extension are documented here.
 
+## 1.1.2 — 2026-05-09
+
+### Changed
+- Production release hardening and metadata cleanup.
+- Removed workspace-local settings from the release workflow.
+- Cleaned configuration text to avoid personal path examples.
+- Added a Windows path-with-spaces guard for local extension-host test runs.
+
 ## 1.1.1 — 2026-05-06
 
 ### Changed
